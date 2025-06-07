@@ -1,0 +1,45 @@
+# === ENVIRONNEMENT VIRTUEL ===
+venv/
+env/
+ENV/
+.venv/
+
+# === FICHIERS PYTHON COMPILÉS ===
+__pycache__/
+*.py[cod]
+*$py.class
+
+# === DJANGO ===
+*.sqlite3
+db.sqlite3
+*.log
+
+# === VARIABLES D'ENVIRONNEMENT ===
+.env
+.env.*
+
+# === MIGRATIONS TEMPORAIRES (optionnel) ===
+# migrations/
+
+# === STATIC & MEDIA (collectés automatiquement) ===
+staticfiles/
+media/
+
+# === ÉDITEURS DE TEXTE / IDE ===
+.vscode/
+.idea/
+
+# === FICHIERS DE TEST ===
+.pytest_cache/
+coverage/
+htmlcov/
+.tox/
+
+# === SYSTEME ===
+.DS_Store
+Thumbs.db
+
+# === LOGS TEMPORAIRES ===
+*.log
+*.tmp
+*.bak
