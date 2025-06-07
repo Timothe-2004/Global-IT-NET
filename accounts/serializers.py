@@ -22,12 +22,36 @@ class AdministrateurSerializer(serializers.ModelSerializer):
     """
     Sérialiseur pour l'affichage des informations de l'administrateur.
     """
-    utilisateur = UtilisateurSerializer(read_only=True)
+    utilisateurs = UtilisateurSerializer(many=True, read_only=True)
     
     class Meta:
         model = Administrateur
-        fields = ['id', 'utilisateur', 'date_creation']
-        read_only_fields = ['id', 'date_creation']
+        fields = ['id', 'utilisateurs']
+        read_only_fields = ['id']
+
+
+class AdministrateurConnexionSerializer(serializers.ModelSerializer):
+    """
+    Sérialiseur optimisé pour la connexion de l'administrateur.
+    Retourne seulement l'utilisateur connecté pour des raisons de sécurité et performance.
+    """
+    utilisateur_connecte = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Administrateur
+        fields = ['id', 'utilisateur_connecte']
+        read_only_fields = ['id']
+    
+    def get_utilisateur_connecte(self, obj):
+        """
+        Retourne les informations de l'utilisateur connecté uniquement.
+        """
+        request = self.context.get('request')
+        if request and request.user:
+            # Vérifier que l'utilisateur connecté fait partie des utilisateurs de cet admin
+            if obj.utilisateurs.filter(id=request.user.id).exists():
+                return UtilisateurSerializer(request.user).data
+        return None
 
 
 class ConnexionSerializer(serializers.Serializer):

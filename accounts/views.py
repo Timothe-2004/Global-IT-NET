@@ -1,5 +1,5 @@
 """
-Vues pour le module accountsCes vues gèrent l'authentification de l'administrateur et les opérations associées.
+Vues pour le module accounts. Ces vues gèrent l'authentification de l'administrateur et les opérations associées.
 """
 from rest_framework import status, generics
 from rest_framework.views import APIView
@@ -10,17 +10,18 @@ from django.contrib.auth.models import User
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 
 from .models import Administrateur
-from .serializers import ConnexionSerializer, AdministrateurSerializer
+from .serializers import ConnexionSerializer, AdministrateurSerializer, AdministrateurConnexionSerializer
 
 
 class ConnexionView(APIView):
     """
     Vue pour la connexion de l'administrateur.
     Utilise l'authentification par session Django.
+    CSRF automatiquement désactivé pour toutes les APIs via middleware.
     """
     permission_classes = [AllowAny]
     serializer_class = ConnexionSerializer
-
+    
     @extend_schema(
         request=ConnexionSerializer,
         responses={
@@ -36,12 +37,12 @@ class ConnexionView(APIView):
         """
         serializer = self.serializer_class(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
-          # Connexion de l'utilisateur avec une session
+        
+        # Connexion de l'utilisateur avec une session
         user = serializer.validated_data['user']
         login(request, user)
-        
-        # Récupérer les informations de l'administrateur
-        admin = Administrateur.objects.filter(utilisateur=user).first()
+          # Récupérer les informations de l'administrateur
+        admin = Administrateur.objects.filter(utilisateurs=user).first()
         
         # Vérifier si l'utilisateur est un administrateur
         if admin is None:
@@ -50,7 +51,8 @@ class ConnexionView(APIView):
                 'admin': None
             }, status=status.HTTP_200_OK)
             
-        admin_serializer = AdministrateurSerializer(admin)
+        # Utiliser le serializer optimisé pour la connexion
+        admin_serializer = AdministrateurConnexionSerializer(admin, context={'request': request})
         
         return Response({
             'message': 'Connexion réussie',
@@ -61,6 +63,7 @@ class ConnexionView(APIView):
 class DeconnexionView(APIView):
     """
     Vue pour la déconnexion de l'administrateur.
+    CSRF automatiquement désactivé pour toutes les APIs via middleware.
     """
     permission_classes = [IsAuthenticated]
 
@@ -96,7 +99,7 @@ class ProfileAdminView(generics.RetrieveAPIView):
         """
         Récupère les informations de l'administrateur connecté.
         """
-        admin = Administrateur.objects.filter(utilisateur=request.user).first()
+        admin = Administrateur.objects.filter(utilisateurs=request.user).first()
         if admin is None:
             return Response(
                 {'message': "Vous n'êtes pas un administrateur."},

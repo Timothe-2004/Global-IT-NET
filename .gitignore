@@ -3,7 +3,7 @@ venv/
 env/
 ENV/
 .venv/
-
+.env
 # === FICHIERS PYTHON COMPILÉS ===
 __pycache__/
 *.py[cod]
@@ -22,8 +22,6 @@ db.sqlite3
 # migrations/
 
 # === STATIC & MEDIA (collectés automatiquement) ===
-staticfiles/
-media/
 
 # === ÉDITEURS DE TEXTE / IDE ===
 .vscode/

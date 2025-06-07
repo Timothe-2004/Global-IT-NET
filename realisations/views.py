@@ -1,9 +1,10 @@
 from rest_framework import generics, status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated, AllowAny,IsAdminUser
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
 from django.db.models import Count
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse, extend_schema_view
+from backend.permissions import IsAdminUser as CustomIsAdminUser
 
 from .models import Realisation, Categorie
 from .serializers import (
@@ -19,24 +20,6 @@ class RealisationListView(generics.ListAPIView):
     """
     serializer_class = RealisationListSerializer
     permission_classes = [AllowAny]
-    
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(
-                name='categorie',
-                description='Filtre les réalisations par catégorie',
-                required=False, 
-                type=str,
-                enum=[c.value for c in Categorie]
-            )
-        ],
-        responses={200: RealisationListSerializer(many=True)},
-        description="Liste toutes les réalisations avec possibilité de filtrer par catégorie",
-        operation_id="list_realisations",
-        tags=["Réalisations"]
-    )
-    def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
     
     def get_queryset(self):
         """
@@ -60,18 +43,6 @@ class RealisationDetailView(generics.RetrieveAPIView):
     queryset = Realisation.objects.all()
     serializer_class = RealisationDetailSerializer
     permission_classes = [AllowAny]
-    
-    @extend_schema(
-        responses={
-            200: RealisationDetailSerializer, 
-            404: OpenApiResponse(description="Réalisation non trouvée")
-        },
-        description="Récupère tous les détails d'une réalisation",
-        operation_id="get_realisation_detail",
-        tags=["Réalisations"]
-    )
-    def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
 
 
 class RealisationCreateView(generics.CreateAPIView):
@@ -80,21 +51,7 @@ class RealisationCreateView(generics.CreateAPIView):
     Seul l'administrateur peut créer des réalisations.
     """
     serializer_class = RealisationCreateUpdateSerializer
-    permission_classes = [IsAdminUser]
-    
-    @extend_schema(
-        request=RealisationCreateUpdateSerializer,
-        responses={
-            201: RealisationDetailSerializer,
-            400: OpenApiResponse(description="Données invalides"),
-            403: OpenApiResponse(description="Accès refusé - Réservé à l'administrateur")
-        },
-        description="Crée une nouvelle réalisation",
-        operation_id="create_realisation",
-        tags=["Réalisations - Administration"]
-    )
-    def post(self, request, *args, **kwargs):
-        return super().post(request, *args, **kwargs)
+    permission_classes = [CustomIsAdminUser]
 
 
 class RealisationUpdateView(generics.UpdateAPIView):
@@ -104,33 +61,7 @@ class RealisationUpdateView(generics.UpdateAPIView):
     """
     queryset = Realisation.objects.all()
     serializer_class = RealisationCreateUpdateSerializer
-    permission_classes = [IsAdminUser]
-    
-    @extend_schema(
-        request=RealisationCreateUpdateSerializer,
-        responses={
-            200: RealisationDetailSerializer,
-            400: OpenApiResponse(description="Données invalides"),
-            404: OpenApiResponse(description="Réalisation non trouvée")
-        },
-        description="Met à jour une réalisation existante",
-        operation_id="update_realisation"
-    )
-    def put(self, request, *args, **kwargs):
-        return super().put(request, *args, **kwargs)
-    
-    @extend_schema(
-        request=RealisationCreateUpdateSerializer,
-        responses={
-            200: RealisationDetailSerializer,
-            400: OpenApiResponse(description="Données invalides"),
-            404: OpenApiResponse(description="Réalisation non trouvée")
-        },
-        description="Met à jour partiellement une réalisation existante",
-        operation_id="partial_update_realisation"
-    )
-    def patch(self, request, *args, **kwargs):
-        return super().patch(request, *args, **kwargs)
+    permission_classes = [CustomIsAdminUser]
 
 
 class RealisationDeleteView(generics.DestroyAPIView):
@@ -139,18 +70,7 @@ class RealisationDeleteView(generics.DestroyAPIView):
     Seul l'administrateur peut supprimer des réalisations.
     """
     queryset = Realisation.objects.all()
-    permission_classes = [IsAdminUser]
-    
-    @extend_schema(
-        responses={
-            204: OpenApiResponse(description="Réalisation supprimée avec succès"),
-            404: OpenApiResponse(description="Réalisation non trouvée")
-        },
-        description="Supprime une réalisation",
-        operation_id="delete_realisation"
-    )
-    def delete(self, request, *args, **kwargs):
-        return super().delete(request, *args, **kwargs)
+    permission_classes = [CustomIsAdminUser]
 
 
 @api_view(['GET'])
@@ -161,13 +81,6 @@ class RealisationDeleteView(generics.DestroyAPIView):
         "name": {"type": "string"},
         "count": {"type": "integer"}
     }}}}}},
-    description="Récupère la liste des catégories de réalisations disponibles pour le système de filtre",
-    operation_id="get_categorie_list",
-    tags=["Réalisations"]
-)
-@api_view(['GET'])
-@extend_schema(
-    responses={200: OpenApiResponse(description="Liste des catégories disponibles")},
     description="Récupère la liste de toutes les catégories avec le nombre de réalisations par catégorie",
     operation_id="list_categories",
     tags=["Catégories"]

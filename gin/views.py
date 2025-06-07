@@ -1,4 +1,6 @@
 from rest_framework import viewsets
+from rest_framework.permissions import AllowAny
+from backend.permissions import IsAdminOrReadOnly, IsAdminOrCreateOnly
 from .models import Formation, InscriptionFormation
 from .serializer import FormationSerializer, InscriptionFormationSerializer
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiExample
@@ -72,8 +74,14 @@ from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiExam
     destroy=extend_schema(summary="Supprimer une formation"),
 )
 class FormationViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet pour les formations.
+    - READ (list, retrieve): Public (AllowAny)
+    - CREATE/UPDATE/DELETE: Admin uniquement
+    """
     queryset = Formation.objects.all()
     serializer_class = FormationSerializer
+    permission_classes = [IsAdminOrReadOnly]
 
 
 
@@ -108,5 +116,11 @@ class FormationViewSet(viewsets.ModelViewSet):
     )
 )
 class InscriptionFormationViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet pour les inscriptions aux formations.
+    - CREATE: Public (AllowAny) - permet aux utilisateurs de s'inscrire
+    - READ/UPDATE/DELETE: Admin uniquement
+    """
     queryset = InscriptionFormation.objects.all()
     serializer_class = InscriptionFormationSerializer
+    permission_classes = [IsAdminOrCreateOnly]

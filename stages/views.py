@@ -2,6 +2,7 @@ from django.shortcuts import render
 from rest_framework import status, viewsets, permissions
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from backend.permissions import IsAdminUser, IsAdminOrReadOnly, IsAdminOrCreateOnly
 from .models import OffreStage, DemandeStage
 from .serializers import DemandeStageSerializer, OffreStageSerializer
 from drf_spectacular.utils import extend_schema, extend_schema_view
@@ -16,15 +17,14 @@ from drf_spectacular.utils import extend_schema, extend_schema_view
     destroy=extend_schema(summary="Supprimer une offre de stage"),
 )
 class OffreStageViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet pour les offres de stage.
+    - READ (list, retrieve): Public (AllowAny)
+    - CREATE/UPDATE/DELETE: Admin uniquement
+    """
     queryset = OffreStage.objects.all()
     serializer_class = OffreStageSerializer
-
-    def get_permissions(self):
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            permission_classes = [permissions.IsAdminUser]
-        else:
-            permission_classes = [permissions.AllowAny]
-        return [permission() for permission in permission_classes]
+    permission_classes = [IsAdminOrReadOnly]
 
 @extend_schema_view(
     list=extend_schema(summary="Lister les demandes de stage"),
@@ -35,19 +35,27 @@ class OffreStageViewSet(viewsets.ModelViewSet):
     destroy=extend_schema(summary="Supprimer une demande de stage"),
 )
 class DemandeStageViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet pour les demandes de stage.
+    - CREATE: Public (AllowAny) - permet aux candidats de postuler
+    - READ/UPDATE/DELETE: Admin uniquement
+    """
     queryset = DemandeStage.objects.all()
     serializer_class = DemandeStageSerializer
-
-    def get_permissions(self):
-        if self.action == 'create':
-            permission_classes = [permissions.AllowAny]
-        else:
-            permission_classes = [permissions.IsAdminUser]
-        return [permission() for permission in permission_classes]
+    permission_classes = [IsAdminOrCreateOnly]
 
     def get_queryset(self):
-        if self.request.user.is_staff:
-            return DemandeStage.objects.all()
+        """
+        Retourne toutes les demandes si l'utilisateur est admin,
+        sinon aucune demande (sécurité).
+        """
+        if self.request.user.is_authenticated:
+            try:
+                from accounts.models import Administrateur
+                if Administrateur.objects.filter(utilisateurs=self.request.user).exists():
+                    return DemandeStage.objects.all()
+            except Exception:
+                pass
         return DemandeStage.objects.none()
 
     @extend_schema(summary="Mettre à jour le statut d'une demande")
