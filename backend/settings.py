@@ -65,11 +65,39 @@ MIDDLEWARE = [
     
 ]
 
+# Configuration CORS sécurisée et flexible
+CORS_ALLOW_ALL_ORIGINS = config('CORS_ALLOW_ALL_ORIGINS', default=False, cast=bool)
+
+# Configuration des domaines autorisés
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # Frontend React local
+    "http://localhost:3000",  
+    "http://127.0.0.1:3000", 
 ]
 
-CORS_ALLOW_CREDENTIALS = True  # Si tu utilises des cookies ou tokens avec credentials
+# Ajouter des domaines via variable d'environnement
+FRONTEND_URLS = config('FRONTEND_URLS', default='').split(',')
+if FRONTEND_URLS and FRONTEND_URLS != ['']:
+    CORS_ALLOWED_ORIGINS.extend([url.strip() for url in FRONTEND_URLS if url.strip()])
+
+# Si CORS_ALLOW_ALL_ORIGINS est True, désactiver les credentials pour la sécurité
+if CORS_ALLOW_ALL_ORIGINS:
+    CORS_ALLOW_CREDENTIALS = False
+    print(" WARNING: CORS_ALLOW_ALL_ORIGINS=True détecté - CORS_ALLOW_CREDENTIALS désactivé pour la sécurité")
+else:
+    CORS_ALLOW_CREDENTIALS = True
+
+# Headers CORS autorisés
+CORS_ALLOWED_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
 
 
 ROOT_URLCONF = "backend.urls"
