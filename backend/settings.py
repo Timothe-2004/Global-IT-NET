@@ -53,14 +53,16 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    'corsheaders.middleware.CorsMiddleware',
     "django.middleware.common.CommonMiddleware",
-    'backend.middleware.CSRFExemptAPIMiddleware',  # Exempt CSRF pour les APIs
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # juste après SecurityMiddleware
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
+
+    
 ]
 
 CORS_ALLOWED_ORIGINS = [
@@ -68,25 +70,6 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True  # Si tu utilises des cookies ou tokens avec credentials
-
-# Configuration CSRF pour désactiver la protection sur les APIs
-CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:8000",
-]
-
-# Ajout dynamique du domaine Render
-if not DEBUG:
-    # En production, ajouter automatiquement le domaine Render
-    render_domain = os.environ.get('RENDER_EXTERNAL_URL')
-    if render_domain:
-        CSRF_TRUSTED_ORIGINS.append(render_domain)
-        CORS_ALLOWED_ORIGINS.append(render_domain)
-
-# URLs exemptées de la vérification CSRF (toutes les APIs)
-CSRF_EXEMPT_URLS = [
-    r'^/api/',  # Toutes les URLs commençant par /api/
-]
 
 
 ROOT_URLCONF = "backend.urls"
