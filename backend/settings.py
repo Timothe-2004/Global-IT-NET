@@ -51,39 +51,50 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',  # DOIT ÊTRE EN PREMIER
     "django.middleware.security.SecurityMiddleware",
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # juste après SecurityMiddleware
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.common.CommonMiddleware',
-
-    
+    'backend.middleware.CSRFExemptAPIMiddleware',  # Notre middleware personnalisé
 ]
 
 # Configuration CORS sécurisée et flexible
-CORS_ALLOW_ALL_ORIGINS = config('CORS_ALLOW_ALL_ORIGINS', default=False, cast=bool)
+DEBUG_MODE = config('DEBUG', default=True, cast=bool)
 
-# Configuration des domaines autorisés
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  
-    "http://127.0.0.1:3000", 
-]
+# Pour le développement, on peut être plus permissif
+if DEBUG_MODE:
+    CORS_ALLOW_ALL_ORIGINS = config('CORS_ALLOW_ALL_ORIGINS', default=True, cast=bool)
+    CORS_ALLOW_CREDENTIALS = True
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:3000",
+        "http://localhost:3001", 
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:3001",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+    ]
+else:
+    CORS_ALLOW_ALL_ORIGINS = config('CORS_ALLOW_ALL_ORIGINS', default=False, cast=bool)
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:3000",  
+        "http://127.0.0.1:3000", 
+    ]
 
 # Ajouter des domaines via variable d'environnement
 FRONTEND_URLS = config('FRONTEND_URLS', default='').split(',')
 if FRONTEND_URLS and FRONTEND_URLS != ['']:
     CORS_ALLOWED_ORIGINS.extend([url.strip() for url in FRONTEND_URLS if url.strip()])
 
-# Si CORS_ALLOW_ALL_ORIGINS est True, désactiver les credentials pour la sécurité
-if CORS_ALLOW_ALL_ORIGINS:
+# Si CORS_ALLOW_ALL_ORIGINS est True en production, désactiver les credentials pour la sécurité
+if CORS_ALLOW_ALL_ORIGINS and not DEBUG_MODE:
     CORS_ALLOW_CREDENTIALS = False
-    print(" WARNING: CORS_ALLOW_ALL_ORIGINS=True détecté - CORS_ALLOW_CREDENTIALS désactivé pour la sécurité")
-else:
+    print("⚠️ WARNING: CORS_ALLOW_ALL_ORIGINS=True en production - CORS_ALLOW_CREDENTIALS désactivé pour la sécurité")
+elif not DEBUG_MODE:
     CORS_ALLOW_CREDENTIALS = True
 
 # Headers CORS autorisés
@@ -97,7 +108,24 @@ CORS_ALLOWED_HEADERS = [
     'user-agent',
     'x-csrftoken',
     'x-requested-with',
+    'cache-control',
 ]
+
+# Méthodes HTTP autorisées
+CORS_ALLOWED_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+# Permettre l'envoi de cookies et headers d'authentification
+CORS_ALLOW_CREDENTIALS = True
+
+# Configuration pour les requêtes preflight
+CORS_PREFLIGHT_MAX_AGE = 86400
 
 
 ROOT_URLCONF = "backend.urls"

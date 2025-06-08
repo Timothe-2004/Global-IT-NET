@@ -10,7 +10,8 @@ from .models import Realisation, Categorie
 from .serializers import (
     RealisationListSerializer,
     RealisationDetailSerializer,
-    RealisationCreateUpdateSerializer
+    RealisationCreateUpdateSerializer,
+    CategorieListResponseSerializer
 )
 
 
@@ -70,17 +71,14 @@ class RealisationDeleteView(generics.DestroyAPIView):
     Seul l'administrateur peut supprimer des réalisations.
     """
     queryset = Realisation.objects.all()
+    serializer_class = RealisationCreateUpdateSerializer  # Ajout du serializer manquant
     permission_classes = [CustomIsAdminUser]
 
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
 @extend_schema(
-    responses={200: {"type": "object", "properties": {"categories": {"type": "array", "items": {"type": "object", "properties": {
-        "id": {"type": "string"},
-        "name": {"type": "string"},
-        "count": {"type": "integer"}
-    }}}}}},
+    responses={200: CategorieListResponseSerializer},
     description="Récupère la liste de toutes les catégories avec le nombre de réalisations par catégorie",
     operation_id="list_categories",
     tags=["Catégories"]

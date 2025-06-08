@@ -5,5 +5,8 @@ class Partenaire(models.Model):
     logo = models.ImageField(upload_to='partenaires/logos/', blank=True, null=True)
     site_web = models.URLField(blank=True, null=True)
 
+    class Meta:
+        ordering = ['nom']  # Tri par nom (alphabétique)
+
     def __str__(self):
         return self.nom

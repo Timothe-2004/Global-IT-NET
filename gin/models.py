@@ -17,6 +17,9 @@ class Formation(models.Model):
     date_fin = models.DateField(null=True, blank=True)
     lieu = models.CharField(max_length=100)
 
+    class Meta:
+        ordering = ['-date_debut']  # Tri par date de début (du plus récent au plus ancien)
+
     def __str__(self):
         return self.titre
 
@@ -36,12 +39,15 @@ class InscriptionFormation(models.Model):
 
     formation = models.ForeignKey('Formation', on_delete=models.CASCADE, related_name='inscriptions')
     nom = models.CharField(max_length=100)
-    prenom = models.CharField(max_length=100)
+    prenom = models.CharField(max_length=100)    
     email = models.EmailField()
     motivations = models.TextField()
     dernier_diplome = models.CharField(max_length=10, choices=DIPLOME_CHOICES)
     domaine = models.CharField(max_length=100)
     annees_experience = models.PositiveIntegerField()
+
+    class Meta:
+        ordering = ['-id']  # Tri par ID (du plus récent au plus ancien)
 
     def __str__(self):
         return f"{self.nom} {self.prenom} - {self.formation.titre}"

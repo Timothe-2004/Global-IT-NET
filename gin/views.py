@@ -1,6 +1,7 @@
 from rest_framework import viewsets
 from .models import Formation, InscriptionFormation
 from .serializer import FormationSerializer, InscriptionFormationSerializer
+from backend.permissions import IsAdminOrReadOnly, IsAdminOrCreateOnly
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiExample
 
 @extend_schema_view(
@@ -74,6 +75,7 @@ from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiExam
 class FormationViewSet(viewsets.ModelViewSet):
     queryset = Formation.objects.all()
     serializer_class = FormationSerializer
+    permission_classes = [IsAdminOrReadOnly]
 
 
 
@@ -110,3 +112,4 @@ class FormationViewSet(viewsets.ModelViewSet):
 class InscriptionFormationViewSet(viewsets.ModelViewSet):
     queryset = InscriptionFormation.objects.all()
     serializer_class = InscriptionFormationSerializer
+    permission_classes = [IsAdminOrCreateOnly]

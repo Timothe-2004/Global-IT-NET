@@ -66,9 +66,19 @@ class DeconnexionView(APIView):
     CSRF automatiquement désactivé pour toutes les APIs via middleware.
     """
     permission_classes = [IsAuthenticated]
+    # Définir un serializer pour éviter l'avertissement DRF-Spectacular
+    serializer_class = None
 
     @extend_schema(
-        responses={200: OpenApiResponse(description="Déconnexion réussie")},
+        request=None,  # Pas de données d'entrée nécessaires
+        responses={
+            200: {
+                "type": "object",
+                "properties": {
+                    "message": {"type": "string", "example": "Déconnexion réussie"}
+                }
+            }
+        },
         description="Déconnexion de l'administrateur",
         operation_id="admin_logout"
     )

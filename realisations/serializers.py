@@ -43,3 +43,20 @@ class RealisationCreateUpdateSerializer(serializers.ModelSerializer):
                 f"{', '.join([f'{key} ({val})' for key, val in Categorie.choices])}"
             )
         return value
+
+
+class CategorieSerializer(serializers.Serializer):
+    """
+    Sérialiseur pour les catégories avec leur nombre de réalisations.
+    Utilisé pour l'endpoint de liste des catégories.
+    """
+    id = serializers.CharField(help_text="Identifiant de la catégorie")
+    name = serializers.CharField(help_text="Nom affiché de la catégorie")
+    count = serializers.IntegerField(help_text="Nombre de réalisations dans cette catégorie")
+
+
+class CategorieListResponseSerializer(serializers.Serializer):
+    """
+    Sérialiseur pour la réponse de l'endpoint des catégories.
+    """
+    categories = CategorieSerializer(many=True)

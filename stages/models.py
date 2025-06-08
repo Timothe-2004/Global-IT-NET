@@ -42,7 +42,7 @@ class OffreStage(models.Model):
         titre (str): Titre de l'offre de stage
         description (str): Description détaillée du stage
         date_debut (date): Date de début du stage
-        duree (int): Durée du stage en semaines
+        duree (int): Durée du stage en semaines        
         competences (str): Compétences requises pour le stage
         mission (str): Description de la mission
     """
@@ -52,6 +52,9 @@ class OffreStage(models.Model):
     duree = models.IntegerField(help_text="Durée en semaines")
     competences = models.TextField()
     mission = models.TextField()
+    
+    class Meta:
+        ordering = ['-date_debut']  # Tri par date de début (du plus récent au plus ancien)
     
     def __str__(self):
         return self.titre
@@ -79,7 +82,7 @@ class DemandeStage(models.Model):
     nom = models.CharField(max_length=100)
     prenom = models.CharField(max_length=100)
     utilisateur = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
-    email = models.EmailField()
+    email = models.EmailField()    
     cv = models.FileField(upload_to='cvs/')
     offre = models.ForeignKey(OffreStage, on_delete=models.CASCADE)
     #requete = models.TextField()
@@ -87,6 +90,9 @@ class DemandeStage(models.Model):
     statut = models.CharField(max_length=20, choices=STATUT_CHOICES, default='en_cours')
     date_demande = models.DateTimeField(auto_now_add=True)
     date_modification = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-date_demande']  # Tri par date de demande (du plus récent au plus ancien)
     
     def __str__(self):
         return f"{self.nom} {self.prenom} - {self.email} - {self.offre.titre} - {self.statut}"
