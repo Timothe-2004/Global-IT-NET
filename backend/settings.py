@@ -47,6 +47,8 @@ INSTALLED_APPS = [
     "accounts",
     "partenaires",
     "realisations",
+    "services",
+    "equipe",
     'corsheaders',
 ]
 
