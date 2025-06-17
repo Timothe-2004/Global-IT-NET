@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "services",
     "equipe",
     'corsheaders',
+    'contact',
 ]
 
 MIDDLEWARE = [
@@ -197,6 +198,16 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # C'est ça qui manque
 # Si ce n’est pas déjà là :
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Email Configuration
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='your-email@gmail.com')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='your-app-password')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='your-email@gmail.com')
+CONTACT_EMAIL = config('CONTACT_EMAIL', default='contact@votresociete.com')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
