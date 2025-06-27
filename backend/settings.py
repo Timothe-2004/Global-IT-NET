@@ -200,14 +200,58 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Email Configuration
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# Pour Gmail, utilisez un mot de passe d'application : https://support.google.com/accounts/answer/185833
+EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
 EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
 EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='your-email@gmail.com')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='your-app-password')
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='your-email@gmail.com')
-CONTACT_EMAIL = config('CONTACT_EMAIL', default='contact@votresociete.com')
+EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=False, cast=bool)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default=config('EMAIL_HOST_USER', default='noreply@gin.com'))
+CONTACT_EMAIL = config('CONTACT_EMAIL', default=config('EMAIL_HOST_USER', default='contact@gin.com'))
+
+# Email timeout settings
+EMAIL_TIMEOUT = config('EMAIL_TIMEOUT', default=30, cast=int)
+
+# SSL configuration for email
+EMAIL_SSL_CERTFILE = None
+EMAIL_SSL_KEYFILE = None
+
+# Custom SSL context for problematic certificates
+import ssl
+
+# Configuration SSL plus permissive pour les serveurs avec certificats problématiques
+EMAIL_SSL_VERIFY = config('EMAIL_SSL_VERIFY', default=True, cast=bool)
+
+if not EMAIL_SSL_VERIFY:
+    # Création d'un contexte SSL personnalisé pour ignorer les erreurs de certificat
+    import ssl
+    from functools import wraps
+    
+    def create_unverified_context():
+        context = ssl.create_default_context()
+        context.check_hostname = False
+        context.verify_mode = ssl.CERT_NONE
+        return context
+    
+    # Monkey patch pour Django
+    try:
+        import smtplib
+        original_starttls = smtplib.SMTP.starttls
+        
+        def patched_starttls(self, keyfile=None, certfile=None, context=None):
+            if context is None:
+                context = create_unverified_context()
+            return original_starttls(self, keyfile, certfile, context)
+        
+        smtplib.SMTP.starttls = patched_starttls
+    except Exception as e:
+        print(f"Erreur lors du patch SSL: {e}")
+
+# En mode développement, vous pouvez utiliser le backend console pour tester
+if DEBUG and config('USE_CONSOLE_EMAIL', default=False, cast=bool):
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
